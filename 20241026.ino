@@ -38,21 +38,31 @@ void moveLegTrajectory(float startX, float startY, float startZ,
   int steps = 50;  // 궤적을 나눌 스텝 수
   float timeStep = duration / steps;
 
-  for (int i = 0; i <= steps; i++) {
-    float t = (float)i / steps;
+  // 첫 번째 단계: 직선 운동 (발을 내딛기)
+  for (int i = 0; i < steps / 2; i++) {
+    float t = (float)i / (steps / 2);
     float x = startX + (endX - startX) * t;
     float y = startY + (endY - startY) * t;
-    
-    // 호버링 높이를 적용하여 다리를 들어올린 후 내려놓기
-    float z = (t < 0.5) ? 
-              startZ + hoverHeight * sin(t * M_PI) :  // 절반 동안 호버링 높이 적용
-              endZ;  // 나머지 절반 동안 다리를 내려줌
-    
+    float z = startZ;  // 직선 운동이므로 높이는 일정
+
+    // 다리 위치 이동 함수 호출
+    moveLegTo(x, y, z);
+    delay(timeStep * 1000);
+  }
+
+  // 두 번째 단계: 포물선 운동 (발을 다시 앞으로 가져오기)
+  for (int i = steps / 2; i <= steps; i++) {
+    float t = (float)(i - steps / 2) / (steps / 2);
+    float x = endX + (startX - endX) * t;
+    float y = endY + (startY - endY) * t;
+    float z = startZ + hoverHeight * (1 - pow(2 * t - 1, 2));  // 포물선 궤적
+
     // 다리 위치 이동 함수 호출
     moveLegTo(x, y, z);
     delay(timeStep * 1000);
   }
 }
+
 
 // 다리를 특정 좌표로 이동
 void moveLegTo(float targetX, float targetY, float targetZ) {
